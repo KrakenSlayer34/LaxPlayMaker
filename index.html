@@ -257,14 +257,11 @@
 
 
 
-ChatGPT said:
 // Draw classic players and ball
 function drawOld() {
 while(svgOld.firstChild) svgOld.removeChild(svgOld.firstChild);
 
 arduino
-Copy
-Edit
 // Draw players
 playersOld.forEach(p => {
   const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
@@ -354,8 +351,6 @@ svgNew.removeChild(svgNew.lastChild);
 }
 
 php
-Copy
-Edit
 // Draw arrows
 arrowsNew.forEach(arrow => {
   const from = playersNew.find(p => p.id === arrow.fromId);
@@ -524,8 +519,6 @@ svgNew.addEventListener("mousedown", e => {
 const target = e.target;
 
 javascript
-Copy
-Edit
 if(target.tagName === "circle" && target.classList.contains("player")){
   // Player drag start
   dragTarget = target;
@@ -585,9 +578,8 @@ const mouseX = e.offsetX;
 const mouseY = e.offsetY;
 let targetPlayer = null;
 
-php
-Copy
-Edit
+
+  php
   // Find player circle near mouse release (within 25px)
   for(const p of playersNew){
     const dx = p.x - mouseX;
