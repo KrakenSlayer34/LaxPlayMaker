@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Lacrosse Strategy Board — Classic & Advanced</title>
+<style>
+  /* Reset & Base */
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #121212;
+    color: white;
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  nav {
+    background: #1d3557;
+    display: flex;
+    justify-content: center;
+    padding: 12px 0;
+    user-select: none;
+  }
+  nav button {
+    background: #457b9d;
+    border: none;
+    color: white;
+    padding: 12px 24px;
+    margin: 0 8px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.25s ease;
+  }
+  nav button.active,
+  nav button:hover,
+  nav button:focus {
+    background: #a8dadc;
+    color: #1d3557;
+    outline: none;
+  }
+  main {
+    flex: 1;
+    overflow: auto;
+    padding: 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+  }
+  .view {
+    display: none;
+    max-width: 1000px;
+    width: 100%;
+    min-height: 80vh;
+    padding-bottom: 40px;
+  }
+  .view.active {
+    display: block;
+  }
+  h2 {
+    text-align: center;
+    margin-bottom: 0.5rem;
+    user-select: none;
+    color: #f1faee;
+    text-shadow: 0 0 5px rgba(0,0,0,0.5);
+  }
+  /* Controls container */
+  .controls {
+    text-align: center;
+    margin-bottom: 15px;
+    user-select: none;
+  }
+  button.action-btn {
+    background-color: #1d3557;
+    color: #f1faee;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 16px;
+    margin: 6px 8px;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  button.action-btn:hover,
+  button.action-btn:focus {
+    background-color: #457b9d;
+    outline: none;
+  }
+  select.action-btn {
+    padding: 10px 14px;
+    font-size: 1rem;
+    border-radius: 8px;
+    border: none;
+    background: #1d3557;
+    color: #f1faee;
+    cursor: pointer;
+  }
+  select.action-btn:hover,
+  select.action-btn:focus {
+    background-color: #457b9d;
+    outline: none;
+  }
+  /* SVG styling */
+  svg {
+    background: #f1faee;
+    border-radius: 12px;
+    box-shadow: 0 0 16px rgba(0,0,0,0.7);
+    display: block;
+    margin: 0 auto;
+    max-width: 100%;
+    user-select: none;
+  }
+  /* Cursor styles */
+  circle.player {
+    cursor: grab;
+    transition: fill 0.3s ease;
+  }
+  circle.player:active {
+    cursor: grabbing;
+  }
+  circle.ball {
+    cursor: grab;
+    fill: gold !important;
+    transition: filter 0.3s ease;
+  }
+  circle.ball:active {
+    cursor: grabbing;
+    filter: drop-shadow(0 0 6px gold);
+  }
+  text.player-name {
+    user-select: none;
+    pointer-events: auto;
+    cursor: text;
+    font-weight: 700;
+  }
+  line.arrow {
+    stroke: crimson;
+    stroke-width: 3;
+  }
+  line.arrow.movement {
+    stroke-dasharray: 0;
+  }
+  line.arrow.passing {
+    stroke-dasharray: 8 6;
+  }
+  /* Input styling inside SVG foreignObject */
+  foreignObject input {
+    width: 100%;
+    font-size: 16px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 6px;
+    border: 2px solid #1d3557;
+    outline-color: #457b9d;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <button id="btn-old" class="active" aria-controls="oldVersion" aria-selected="true" role="tab" tabindex="0">Classic Board</button>
+  <button id="btn-new" aria-controls="newVersion" aria-selected="false" role="tab" tabindex="-1">Advanced Board</button>
+</nav>
+
+<main>
+  <!-- Classic Board -->
+  <section id="oldVersion" class="view active" role="tabpanel" tabindex="0" aria-label="Classic Lacrosse Strategy Board">
+    <h2>Classic Lacrosse Strategy Board</h2>
+    <div class="controls" aria-label="Classic Board Controls">
+      <button class="action-btn" id="addPlayerOldBtn" aria-label="Add player to classic board">Add Player</button>
+      <button class="action-btn" id="clearBoardOldBtn" aria-label="Clear classic board">Clear Board</button>
+    </div>
+    <svg id="oldSvg" width="600" height="400" aria-label="Classic Lacrosse Field" role="img" style="background:#4CAF50;">
+      <!-- Players and ball will be drawn here -->
+    </svg>
+  </section>
+
+  <!-- Advanced Board -->
+  <section id="newVersion" class="view" role="tabpanel" tabindex="0" aria-label="Advanced Lacrosse Strategy Board">
+    <h2>Advanced Lacrosse Strategy Board</h2>
+    <div class="controls" aria-label="Advanced Board Controls">
+      <button class="action-btn" id="addPlayerNewBtn" aria-label="Add player to advanced board">Add Player</button>
+      <button class="action-btn" id="clearBoardNewBtn" aria-label="Clear advanced board">Clear Board</button>
+      <select id="arrowTypeSelect" class="action-btn" aria-label="Select arrow type">
+        <option value="movement">Movement Arrow (solid)</option>
+        <option value="passing">Passing Arrow (dashed)</option>
+      </select>
+    </div>
+    <svg id="newSvg" width="567" height="900" aria-label="Advanced Lacrosse Field" role="img"
+         xmlns="http://www.w3.org/2000/svg"
+         xmlns:xlink="http://www.w3.org/1999/xlink"
+         >
+      <image href="https://cdn.sportrebel.pl/photos/tablica-trenerska-fox40-lacrosse-1_170x270.jpg"
+             x="0" y="0" height="900" width="567" style="border-radius: 12px;" />
+    </svg>
+  </section>
+</main>
+
+<script>
+  // ========== TAB SWITCHING ==========
+  const btnOld = document.getElementById("btn-old");
+  const btnNew = document.getElementById("btn-new");
+  const oldView = document.getElementById("oldVersion");
+  const newView = document.getElementById("newVersion");
+
+  function switchTab(oldSelected) {
+    if (oldSelected) {
+      btnOld.classList.add("active");
+      btnNew.classList.remove("active");
+      btnOld.setAttribute("aria-selected", "true");
+      btnOld.setAttribute("tabindex", "0");
+      btnNew.setAttribute("aria-selected", "false");
+      btnNew.setAttribute("tabindex", "-1");
+
+      oldView.classList.add("active");
+      oldView.setAttribute("tabindex", "0");
+      newView.classList.remove("active");
+      newView.setAttribute("tabindex", "-1");
+    } else {
+      btnNew.classList.add("active");
+      btnOld.classList.remove("active");
+      btnNew.setAttribute("aria-selected", "true");
+      btnNew.setAttribute("tabindex", "0");
+      btnOld.setAttribute("aria-selected", "false");
+      btnOld.setAttribute("tabindex", "-1");
+
+      newView.classList.add("active");
+      newView.setAttribute("tabindex", "0");
+      oldView.classList.remove("active");
+      oldView.setAttribute("tabindex", "-1");
+    }
+  }
+
+  btnOld.addEventListener("click", () => switchTab(true));
+  btnNew.addEventListener("click", () => switchTab(false));
+
+  // ========== CLASSIC BOARD LOGIC ==========
+  const svgOld = document.getElementById("oldSvg");
+  const addPlayerOldBtn = document.getElementById("addPlayerOldBtn");
+  const clearBoardOldBtn = document.getElementById("clearBoardOldBtn");
+
+  let playersOld = [];
+  let ballOld = null;
+
+ 
+
+
+
+
+
+
+ChatGPT said:
+// Draw classic players and ball
+function drawOld() {
+while(svgOld.firstChild) svgOld.removeChild(svgOld.firstChild);
+
+arduino
+Copy
+Edit
+// Draw players
+playersOld.forEach(p => {
+  const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+  circle.setAttribute("cx", p.x);
+  circle.setAttribute("cy", p.y);
+  circle.setAttribute("r", "20");
+  circle.setAttribute("fill", "#0b79f7");
+  circle.classList.add("player");
+  svgOld.appendChild(circle);
+});
+
+// Draw ball
+if(ballOld){
+  const ball = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+  ball.setAttribute("cx", ballOld.x);
+  ball.setAttribute("cy", ballOld.y);
+  ball.setAttribute("r", "15");
+  ball.setAttribute("fill", "yellow");
+  svgOld.appendChild(ball);
+}
+}
+
+addPlayerOldBtn.onclick = () => {
+// Random position inside SVG viewbox margin 20
+const newX = 50 + Math.random() * (svgOld.clientWidth - 100);
+const newY = 50 + Math.random() * (svgOld.clientHeight - 100);
+playersOld.push({x: newX, y: newY});
+drawOld();
+};
+
+clearBoardOldBtn.onclick = () => {
+playersOld = [];
+ballOld = null;
+drawOld();
+};
+
+drawOld();
+
+// ========== ADVANCED BOARD LOGIC ==========
+const svgNew = document.getElementById("newSvg");
+const addPlayerNewBtn = document.getElementById("addPlayerNewBtn");
+const clearBoardNewBtn = document.getElementById("clearBoardNewBtn");
+const arrowTypeSelect = document.getElementById("arrowTypeSelect");
+
+let playersNew = [];
+let ballNew = null;
+let arrowsNew = [];
+let drawingArrow = null;
+
+// Helper to create SVG elements
+function createSVGElement(tag, attrs = {}) {
+const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
+for(const [k,v] of Object.entries(attrs)){
+el.setAttribute(k,v);
+}
+return el;
+}
+
+// Add arrowhead marker definition
+function addArrowheadMarker() {
+if (document.getElementById("arrowhead")) return;
+const defs = createSVGElement("defs");
+const marker = createSVGElement("marker", {
+id: "arrowhead",
+markerWidth: "10",
+markerHeight: "7",
+refX: "0",
+refY: "3.5",
+orient: "auto",
+markerUnits: "strokeWidth"
+});
+const path = createSVGElement("path", {
+d: "M0,0 L0,7 L10,3.5 z",
+fill: "crimson"
+});
+marker.appendChild(path);
+defs.appendChild(marker);
+svgNew.insertBefore(defs, svgNew.firstChild);
+}
+addArrowheadMarker();
+
+// Draw everything in advanced board
+function drawNew() {
+// Clear all except background image & defs
+while(svgNew.children.length > 2) {
+svgNew.removeChild(svgNew.lastChild);
+}
+
+php
+Copy
+Edit
+// Draw arrows
+arrowsNew.forEach(arrow => {
+  const from = playersNew.find(p => p.id === arrow.fromId);
+  const to = playersNew.find(p => p.id === arrow.toId);
+  if(!from || !to) return;
+  const strokeDasharray = arrow.type === "passing" ? "8 6" : "0";
+
+  // Calculate arrow line endpoint to fit arrowhead nicely
+  const headlen = 12;
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  const angle = Math.atan2(dy, dx);
+  const x2 = to.x - headlen * Math.cos(angle);
+  const y2 = to.y - headlen * Math.sin(angle);
+
+  const line = createSVGElement("line", {
+    class: "arrow " + arrow.type,
+    x1: from.x,
+    y1: from.y,
+    x2: x2,
+    y2: y2,
+    "stroke-dasharray": strokeDasharray,
+    "marker-end": "url(#arrowhead)"
+  });
+  svgNew.appendChild(line);
+});
+
+// Draw players
+playersNew.forEach(p => {
+  const circle = createSVGElement("circle", {
+    class: "player",
+    cx: p.x,
+    cy: p.y,
+    r: 22,
+    fill: "#0b79f7",
+    cursor: "grab",
+    "data-id": p.id
+  });
+  svgNew.appendChild(circle);
+
+  const text = createSVGElement("text", {
+    class: "player-name",
+    x: p.x,
+    y: p.y + 6,
+    "font-size": 16,
+    "text-anchor": "middle",
+    fill: "white",
+    "data-id": p.id
+  });
+  text.textContent = p.name;
+  svgNew.appendChild(text);
+});
+
+// Draw ball if present
+if(ballNew){
+  const ball = createSVGElement("circle", {
+    class: "ball",
+    cx: ballNew.x,
+    cy: ballNew.y,
+    r: 15,
+    fill: "gold",
+    cursor: "grab",
+    "data-ball": "true"
+  });
+  svgNew.appendChild(ball);
+}
+
+// Draw current drawing arrow (preview)
+if(drawingArrow){
+  const from = playersNew.find(p => p.id === drawingArrow.fromId);
+  if(from){
+    const strokeDasharray = drawingArrow.type === "passing" ? "8 6" : "0";
+    const line = createSVGElement("line", {
+      class: "arrow " + drawingArrow.type,
+      x1: from.x,
+      y1: from.y,
+      x2: drawingArrow.currentX,
+      y2: drawingArrow.currentY,
+      "stroke-dasharray": strokeDasharray,
+      "marker-end": "url(#arrowhead)"
+    });
+    svgNew.appendChild(line);
+  }
+}
+}
+
+// Add player on advanced board
+addPlayerNewBtn.onclick = () => {
+const newId = playersNew.length ? Math.max(...playersNew.map(p=>p.id)) + 1 : 1;
+// Default start position bottom-center-ish
+playersNew.push({id: newId, name: P${newId}, x: 280, y: 750});
+drawNew();
+};
+
+// Clear advanced board
+clearBoardNewBtn.onclick = () => {
+playersNew = [];
+arrowsNew = [];
+ballNew = null;
+drawingArrow = null;
+drawNew();
+};
+
+// ========== Editable Player Names ==========
+svgNew.addEventListener("dblclick", e => {
+if(e.target.tagName === "text" && e.target.classList.contains("player-name")){
+const playerId = Number(e.target.getAttribute("data-id"));
+const player = playersNew.find(p => p.id === playerId);
+if(!player) return;
+
+pgsql
+Copy
+Edit
+  // Remove any existing foreignObject inputs
+  const existingFOs = svgNew.querySelectorAll("foreignObject");
+  existingFOs.forEach(fo => svgNew.removeChild(fo));
+
+  // Create foreignObject with input
+  const foreignObject = createSVGElement("foreignObject", {
+    x: player.x - 40,
+    y: player.y - 20,
+    width: 80,
+    height: 30
+  });
+
+  const input = document.createElement("input");
+  input.type = "text";
+  input.value = player.name;
+  input.setAttribute("maxlength", "12");
+  input.style.width = "100%";
+  input.style.fontSize = "16px";
+  input.style.fontWeight = "700";
+  input.style.textAlign = "center";
+  input.autocomplete = "off";
+
+  foreignObject.appendChild(input);
+  svgNew.appendChild(foreignObject);
+  input.focus();
+  input.select();
+
+  function finalize() {
+    const val = input.value.trim();
+    if(val.length > 0) player.name = val;
+    svgNew.removeChild(foreignObject);
+    drawNew();
+  }
+  input.onblur = finalize;
+  input.onkeydown = (event) => {
+    if(event.key === "Enter"){
+      finalize();
+    } else if(event.key === "Escape"){
+      svgNew.removeChild(foreignObject);
+      drawNew();
+    }
+  };
+}
+});
+
+// ========== Drag & Drop and Arrow Drawing ==========
+let dragTarget = null;
+let dragType = null; // "player" or "ball"
+let dragOffsetX = 0;
+let dragOffsetY = 0;
+
+svgNew.addEventListener("mousedown", e => {
+const target = e.target;
+
+javascript
+Copy
+Edit
+if(target.tagName === "circle" && target.classList.contains("player")){
+  // Player drag start
+  dragTarget = target;
+  dragType = "player";
+  const id = Number(target.getAttribute("data-id"));
+  const player = playersNew.find(p => p.id === id);
+  dragOffsetX = e.offsetX - player.x;
+  dragOffsetY = e.offsetY - player.y;
+  e.preventDefault();
+} else if(target.tagName === "circle" && target.classList.contains("ball")){
+  // Ball drag start
+  dragTarget = target;
+  dragType = "ball";
+  dragOffsetX = e.offsetX - ballNew.x;
+  dragOffsetY = e.offsetY - ballNew.y;
+  e.preventDefault();
+} else if(target.tagName === "circle" && target.classList.contains("player")){
+  // Redundant catch - covered above
+} else if(target.tagName === "circle"){
+  // Some other circle - do nothing
+} else if(target.tagName === "svg") {
+  // SVG background click clears arrow drawing
+  drawingArrow = null;
+  drawNew();
+}
+});
+
+svgNew.addEventListener("mousemove", e => {
+if(dragTarget && dragType === "player") {
+const id = Number(dragTarget.getAttribute("data-id"));
+const player = playersNew.find(p => p.id === id);
+if(player){
+player.x = Math.min(Math.max(e.offsetX - dragOffsetX, 22), svgNew.clientWidth - 22);
+player.y = Math.min(Math.max(e.offsetY - dragOffsetY, 22), svgNew.clientHeight - 22);
+drawNew();
+}
+}
+else if(dragTarget && dragType === "ball"){
+ballNew.x = Math.min(Math.max(e.offsetX - dragOffsetX, 15), svgNew.clientWidth - 15);
+ballNew.y = Math.min(Math.max(e.offsetY - dragOffsetY, 15), svgNew.clientHeight - 15);
+drawNew();
+}
+else if(drawingArrow){
+drawingArrow.currentX = Math.min(Math.max(e.offsetX, 0), svgNew.clientWidth);
+drawingArrow.currentY = Math.min(Math.max(e.offsetY, 0), svgNew.clientHeight);
+drawNew();
+}
+});
+
+svgNew.addEventListener("mouseup", e => {
+if(dragTarget){
+dragTarget = null;
+dragType = null;
+} else if(drawingArrow){
+// Finish arrow drawing if released on a player
+const mouseX = e.offsetX;
+const mouseY = e.offsetY;
+let targetPlayer = null;
+
+php
+Copy
+Edit
+  // Find player circle near mouse release (within 25px)
+  for(const p of playersNew){
+    const dx = p.x - mouseX;
+    const dy = p.y - mouseY;
+    if(Math.sqrt(dx*dx + dy*dy) < 25){
+      targetPlayer = p;
+      break;
+    }
+  }
+
+  if(targetPlayer && targetPlayer.id !== drawingArrow.fromId){
+    arrowsNew.push({
+      fromId: drawingArrow.fromId,
+      toId: targetPlayer.id,
+      type: drawingArrow.type
+    });
+  }
+  drawingArrow = null;
+  drawNew();
+}
+});
+
+// Arrow drawing mode: click on player to start drawing arrow
+svgNew.addEventListener("click", e => {
+if(e.target.tagName === "circle" && e.target.classList.contains("player")){
+const playerId = Number(e.target.getAttribute("data-id"));
+if(!drawingArrow){
+drawingArrow = {
+fromId: playerId,
+currentX: 0,
+currentY: 0,
+type: arrowTypeSelect.value
+};
+}
+else {
+// If already drawing arrow and click another player, finalize arrow
+if(drawingArrow.fromId !== playerId){
+arrowsNew.push({
+fromId: drawingArrow.fromId,
+toId: playerId,
+type: drawingArrow.type
+});
+drawingArrow = null;
+drawNew();
+}
+}
+}
+});
+
+// Add ball to advanced board, if none present
+svgNew.addEventListener("dblclick", e => {
+if(e.target === svgNew && !ballNew){
+// Add ball at click position
+ballNew = {x: e.offsetX, y: e.offsetY};
+drawNew();
+}
+});
+
+drawNew();
+
+</script> </body> </html> ```
